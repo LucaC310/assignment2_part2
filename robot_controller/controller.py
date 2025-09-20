@@ -9,26 +9,28 @@ class RobotController(Node):
 	def __init__(self):
 		super().__init__("robot_controller")
 		
+		#Publisher initialisation for velocity commands
 		self.cmd_pub = self.create_publisher(Twist, "/cmd_vel", 10)
 		
+		#Subscriber initialisation for odometry feedback
 		self.odom_sub = self.create_subscription(Odometry, "/odom", self.odom_callback, 10)
 		
 		timer_period = 0.1	
 		self.timer = self.create_timer(timer_period, self.timer_callback)
 		
-		self.position = None
-		self.orientation = None
+		self.position = None   #Stores the lasest robot position from /odom
+		self.orientation = None   #Stores the robot orientation
 		self.vel_msg = Twist()
 		
 	def odom_callback(self, msg: Odometry):
-		self.position = msg.pose.pose.position
-		self.orientation = msg.pose.pose.orientation
-		self.get_logger().info(f'Odom -> x: {self.position.x:.2f}, y: {self.position.y:.2f}')
+		self.position = msg.pose.pose.position   #Updates the stored position
+		self.orientation = msg.pose.pose.orientation   #Updates the stored position
 		
+		#Movement logic
 		if self.position.x > 9.0:
 			self.vel_msg.linear.x = 1.0
 			self.vel_msg.angular.z = 1.0
-		elif self.position.x < 1.5:
+		elif self.position.x < 2.0:
 			self.vel_msg.linear.x = 1.0
 			self.vel_msg.angular.z = -1.0
 		else:
@@ -44,5 +46,5 @@ def main(args=None):
 	rclpy.spin(node)
 	rclpy.shutdown()
 	
-if __name__ == '__name__':
+if __name__ == '__main__':
 	main()
